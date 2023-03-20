@@ -1,0 +1,74 @@
+%% Il nous faut en premier une fonction objective qu'on va essayer de minimiser 
+%% Il faudra pour cela une fonction � 2 variables x et y , facile hein ? J'aime �aaaaaa 
+%% A partir du gradient de la fonction on sait qu'une fonction f(x,y) implique que (xi+1,yi+1)=(xi,yi)-lammbda*grad(f(x,y))
+%% En machine learning , le lambda est appel� taux d'apprentissage lors d'un processus d'optimisation pr� �tabli 
+%% C'est la m�thode des multiplicateurs de lagrange
+
+clc, clearvars, close all 
+
+%% Fonction objective : d�finie et mod�lis�e en fonction de la probl�matique rencontr�e
+f = @(x,y) 1/4*x.^2 + y.^2;
+syms fs xs ys
+fs=1/4*xs.^2+ys.^2  %Expression symbolique
+
+% Decisions pour x et y puis Visualisation
+x=-5:.2:5;
+y=-5:.2:5;
+[X,Y]=meshgrid(x,y);
+Z=f(X,Y);
+
+surf(X,Y,Z), hold on
+xlabel('x'),ylabel('y'),zlabel('z')
+
+%% Descente de gradient (on recherche le minimum ici)
+                    %z2=z1-alpha*gradient(f(x,y))
+
+% On ins�re les d�riv�es partielles
+Df_x=diff(fs,xs);      % Mode symbolique
+Df_y=diff(fs,ys); 
+
+grad_x=matlabFunction(Df_x);  % On passe du mode symbolique au mode anonymous function
+grad_y=matlabFunction(Df_y);
+
+%% Nos conditions initiales ou nos  contraintes
+pts(1,1)=4;                         %Position initiale de x
+pts(1,2)=5;                         %Position initiale de y
+pts(1,3)=f(pts(1,1),pts(1,2));      %Position initiale de z
+alpha=0.5;                          %Le learning rate ou taux d'apprentissage
+
+%% Algorithme
+
+err_x=5; err_y=5;  %On prend une erreur relativement grande pour s'assurer que le calcul des prochains points 
+                   %se fasse d�s le debut du programme
+i=1;
+while err_x > 0.01 ||  err_y > 0.01
+    
+    %Calcul des prochains points x,y,z 
+    pts(i+1,1)=pts(i,1)-alpha*grad_x(pts(i,1)); %x
+    pts(i+1,2)=pts(i,2)-alpha*grad_x(pts(i,2)); %y
+    pts(i+1,3)= f(pts(i+1,1),pts(i+1,2)); % z (from x,y)
+
+    % on actualise err_x et err_y pour la prochaine iteration 
+    err_x=abs(pts(i+1,1)-pts(i,1));    
+    err_y=abs(pts(i+1,2)-pts(i,2));
+
+    % On incremente i 
+    i=i+1;
+    
+    %  ! On sort de la boucle while si i est trop grand genre 200
+    if i > 200
+        break
+    end
+end
+
+%% On affiche les points 
+ scatter3(pts(:,1),pts(:,2),pts(:,3))...'k','filled')
+     
+%% On ecrit quelques informations utiles sur la console
+
+fprintf("La cible (le minimum qu'on veut) a �t� atteint en %d iterations \n",length(pts))
+fprintf("Le dernier point atteignable est ( x=%1.2f , y=%1.2f, z=%1.2f )\n",pts(end,1),pts(end,2),pts(end,3))
+    
+    
+    
+    
